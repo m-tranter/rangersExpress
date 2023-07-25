@@ -1,0 +1,39 @@
+name: Docker Image CI
+
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Docker login
+      env:
+        PASS: ${{ secrets.DOCKER_PASS }}
+        USER: ${{ secrets.DOCKER_USER }}
+      run: |
+        docker login -u $USER -p $PASS
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag antiloquax/rangersnuxt:${{ github.run_number }}
+    - name: Docker push
+      run: docker push antiloquax/rangersnuxt:${{ github.run_number }}
+      
+  push_to_contensis:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Contensis block push action
+      uses: contensis/block-push@v1
+      with:
+        alias: chesheast
+        block-id: rangersnuxt
+        client-id: ${{ secrets.Z_CLIENT_ID }}
+        git-token: ${{ secrets.GIT_TOKEN }}
+        image-uri: antiloquax/rangersnuxt:${{ github.run_number }} 
+        project-id: blockstest
+        shared-secret: ${{ secrets.Z_SHARED_SECRET }}            
