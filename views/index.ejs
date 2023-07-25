@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link
+    href="https://www.cheshireeast.gov.uk/siteelements/css/bs5/100-bootstrap.min.css"
+    rel="stylesheet"
+    type="text/css"
+    />
+    <link
+    href="https://www.cheshireeast.gov.uk/siteelements/css/bs5/400-cec-styles.css?version=144433"
+    rel="stylesheet"
+    type="text/css"
+    />
+    <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;family=Open+Sans+Condensed:wght@700&amp;display=swap"
+    rel="stylesheet"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>&nbsp;</title>
+    <style>
+    </style>
+  </head>
+  <body>
+    <div class="container" id="app">
+      <div>
+        <my-header></my-header>
+        <div class="mx-auto my-2">
+          <router-view :gotopage="goToPage" :items="items" :formatdate="formatDate" :gettime="getTime" :categorieschecked="categoriesChecked" :pageindex="pageIndex" :totalcount="totalCount" :pagecount="pageCount" :pagebtns="pageBtns" :fromdate="fromDate" :todate="toDate" :categories="categories"></router-view>
+        </div>
+        <my-footer></my-footer>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/vue-router@4"></script>
+
+    <script>
+      // Components
+      const MyPagination = {
+        name: "pagination",
+        props: ['gotopage', 'pageindex', 'pagebtns', 'pagecount'],
+        template: `
+        <div>
+        <nav role="navigation" aria-label="Results data navigation">
+        <ul class="pagination d-flex flex-wrap mb-2 ms-0">
+        <li class="page-item" v-bind:class="{ disabled: pageindex === 0 }">
+        <button
+        class="page-link"
+        type="button"
+        v-on:click="gotopage(pageindex)"
+        >
+        Previous
+        </button>
+        </li>
+        <li
+        v-for="pagebtn in pagebtns"
+        class="page-item"
+        v-bind:class="{ disabled: pageindex === pagebtn - 1 }"
+        v-bind:key="pagebtn"
+        >
+        <button class="page-link" type="button" v-on:click="gotopage(pagebtn)">
+        {{ pagebtn }}
+        </button>
+        </li>
+        <li
+        class="page-item"
+        v-bind:class="{ disabled: pageindex + 1 === pagecount }"
+        >
+        <button
+        class="page-link"
+        type="button"
+        v-on:click="gotopage(pageindex + 2)"
+        >
+        Next
+        </button>
+        </li>
+        </ul>
+        </nav>
+        </div>`
+      };
+
+      const MyHeader = {
+        template: `
+        <header class="cec-header">
+        <div class="container">
+        <div class="float-start"><a class="navbar-brand border border-0 border-secondary" title="Home" href="https://www.cheshireeast.gov.uk/home.aspx"> <img title="Home page" alt="Cheshire East Council home page" height="70" width="155" src="https://www.cheshireeast.gov.uk/images/non_user/cec-logo-colour-155x70px.png"> <span class="visually-hidden">Cheshire East Council website home page</span></a></div>
+        </div>
+        <div style="clear: both;"></div>
+        </header>`
+      };
+
+      const MyFooter = {
+        template: `
+        <footer>
+        <div class="container py-2">
+        <p class="mb-0 text-md-end text-white"><strong>&copy; Cheshire East Council</strong></p>
+        </div>
+        </footer>`
+      };
+
+      const Events = {
+        props: ['items', 'formatdate', 'gettime'],
+        template: `<div :set="item = items.find(e => e.sys.slug === $route.params.id)">
+        <div v-if="item" class="selectedItem" >
+        <router-link class="cec-button" to="/">Back to results</router-link>
+        <h2 class="selected-item-details--title text-center">
+        {{ item.title }}
+        </h2>
+        <template
+        v-if="
+        formatdate(item.dateStartEnd.from) ===
+        formatdate(item.dateStartEnd.to)
+        "
+        >
+        <p class="text-center fs-5">
+        {{ formatdate(item.dateStartEnd.from) }}.
+        </p>
+        </template>
+        <template v-else>
+        <p class="text-center fs-5">
+        {{ formatdate(item.dateStartEnd.from) }} to
+        {{ formatdate(item.dateStartEnd.to) }}.
+        </p>
+        </template>
+        <div class="selected-item-details">
+        <div class="row">
+        <div class="col-12">
+        <img
+        v-if="item.image != null"
+        class="rounded mx-auto d-block featured-img"
+        :src="'https://www.cheshireeast.gov.uk/' + item.image.asset.sys.uri"
+        :alt="item.title"
+        />
+        <hr />
+        </div>
+        <div class="col-lg-6 pb-lg-2">
+        <h3>Description</h3>
+        <div
+        class="selected-item-details--description"
+        v-html="item.description"
+        ></div>
+        </div>
+        <div class="col-lg-6 pb-2">
+        <h3>Details</h3>
+        <template
+        v-if="
+        formatdate(item.dateStartEnd.from) ===
+        formatdate(item.dateStartEnd.to)
+        "
+        >
+        <p>
+        <strong>Time:</strong> {{ gettime(item.dateStartEnd.from) }} -
+        {{ gettime(item.dateStartEnd.to) }}.
+        </p>
+        </template>
+        <template v-else>
+        <p>
+        <strong>From: </strong>{{ gettime(item.dateStartEnd.from) }},
+        {{ formatdate(item.dateStartEnd.from) }}.
+        </p>
+        <p>
+        <strong>To: </strong>{{ gettime(item.dateStartEnd.to) }},
+        {{ formatdate(item.dateStartEnd.to) }}.
+        </p>
+        </template>
+        <p><strong>Leader(s):</strong> {{ item.leaders }}</p>
+        <p>
+        <strong>More information:</strong>
+        </p>
+        <div v-html="item.eventInformation"></div>
+        <p><strong>Tags:</strong></p>
+        <ul>
+        <li v-for="tag in item.tags" :key="tag">{{ tag.name }}</li>
+        </ul>
+        <h3>Meeting point</h3>
+        <div v-html="item.meetingPoint"></div>
+        <div class="selected-item-details__map">
+        <div id="map" ref="mapDiv">
+        <a
+        target="_blank"
+        :href="
+        'https://maps.google.com/maps?q=' +
+        'item.mapLocation.lat' +
+        ',' +
+        'item.mapLocation.lon'
+        "
+        class="cec-button cec-button-forward"
+        role="button"
+        aria-pressed="true"
+        >
+        Get Directions
+        <small>(opens new window)</small></a
+        >
+        </div>
+        </div>
+        </div>
+        <div class="col-12">
+        <hr />
+        <router-link class="cec-button" to="/">Back to results</router-link>
+        </div>
+        </div>
+        </div>
+        </div>
+        <div v-else>
+        <h1>Page not found</h1>
+        <p>Try searching for current events.</p>
+        <router-link class="cec-button" to="/">Events page</router-link>
+        </div>
+        </div>`,
+      };
+
+      const MyCard = {
+        props: ["items", 'formatdate', 'gettime'],
+        template: `<div><div
+        v-for="item in items"
+        v-bind:key="item.sys.id"
+        tabindex="0"
+        class="linkDiv ranger-event-card card card-item flex-md-row align-items-center"
+        >
+        <router-link
+        :to="{name: 'events', params: { id: item.sys.slug }}" 
+        ><span class="innerLink"
+        ><span class="visually-hidden">{{ item.title }}</span></span
+        ></router-link
+        >
+        <div
+        class="col-12 col-md-5 thumbnail-container d-flex justify-content-center px-2"
+        >
+        <img
+        v-if="item.image != null"
+        class="img-fluid rounded featured-img"
+        v-bind:src="'https://www.cheshireeast.gov.uk/' + item.image.asset.sys.uri"
+        v-bind:alt="item.title"
+        />
+        </div>
+        <div
+        class="card-body col-12 col-md-7 text-center text-md-start ps-md-4 ps-xl-2"
+        >
+        <h2 class="fs-4">{{ item.entryTitle }}</h2>
+        <template
+        v-if="
+        formatdate(item.dateStartEnd.from) ===
+        formatdate(item.dateStartEnd.to)
+        "
+        >
+        <p>{{ formatdate(item.dateStartEnd.from) }}.</p>
+        <p>
+        <strong>Time:</strong> {{ gettime(item.dateStartEnd.from) }} -
+        {{ gettime(item.dateStartEnd.to) }}.
+        </p>
+        </template>
+        <template v-else>
+        <p>
+        From {{ gettime(item.dateStartEnd.from) }} on
+        {{ formatdate(item.dateStartEnd.from) }}.
+        </p>
+        <p>
+        Until {{ gettime(item.dateStartEnd.to) }} on
+        {{ formatdate(item.dateStartEnd.to) }}.
+        </p>
+        </template>
+        <p>{{ item.excerpt }}</p>
+        </div>
+        </div></div>`,
+        components: {
+          Events
+        }
+      };
+
+      const Home = {
+        props: ['items', 'totalcount', 'pageindex', 'gotopage', 'categorieschecked', 'totalcount', 'pagesize', 'pagecount', 'pagebtns', 'searchterm', 'fromdate', 'todate', 'categories', 'searchalert', 'clearalert', 'searchfilter', 'resetsearch', 'applyfilters','formatdate', 'gettime' ],
+        template: `
+        <div id="contentTypesContainer" class="row events-container">
+        <div class="col-lg-8">
+        <my-pagination
+        :gotopage="gotopage"
+        :pagecount="pagecount"
+        :pagebtns="pagebtns"
+        :pageindex="pageindex"
+        />
+        <div class="api-results-info">
+        <p>
+        Total results: <strong>{{ totalcount }}</strong>
+        </p>
+        <p>
+        Current page: <strong>{{ pageindex + 1 }}</strong>
+        </p>
+        </div>
+        <my-card :items="items" :formatdate="formatdate" :gettime="gettime" />
+        <my-pagination
+        :gotopage="gotopage"
+        :pagecount="pagecount"
+        :pagebtns="pagebtns"
+        :pageindex="pageindex"
+        />
+        </div>
+        <div class="col-lg-4 mt-3 mt-lg-0">
+        <div
+        class="search-options-container border-secondary border border-1 rounded p-3"
+        >
+        <h2 class="mt-0">Search for an event</h2>
+        <div class="date-range">
+        <h3>Date range</h3>
+        <label for="start-date">From</label>
+        <input
+        type="date"
+        id="start-date"
+        v-model="fromdate"
+        min="2022-09-01"
+        max="2025-12-31"
+        />
+        <label for="end-date">To</label>
+        <input
+        type="date"
+        id="end-date"
+        v-model="todate"
+        min="2022-09-01"
+        max="2025-12-31"
+        v-on:change="searchfilter()"
+        />
+        </div>
+        <div class="search-options mt-3">
+        <div class="input-group content-type-search">
+        <input
+        @input="searchfilter"
+        @focus="clearalert"
+        autocomplete="off"
+        type="text"
+        class="form-control me-2 border-secondary border border-1"
+        placeholder="Type here..."
+        v-model="searchterm"
+        aria-label="Search term"
+        id="contentTypeSearchInput"
+        />
+        <div class="input-group-append">
+        <button
+        type="button"
+        class="btn btn-outline-secondary"
+        v-on:click="searchfilter"
+        id="contentTypeSearchBtn"
+        >
+        Search
+        </button>
+        </div>
+        <button
+        class="btn btn-outline-secondary w-100 mt-3"
+        type="button"
+        v-on:click="resetsearch"
+        >
+        Clear
+        </button>
+        </div>
+        <div class="search-error-messages">
+        <div
+        v-if="searchalert"
+        class="alert alert-secondary mt-2"
+        role="alert"
+        >
+        Please enter a search term.
+        </div>
+        </div>
+        </div>
+        </div>
+        <div class="category-options pt=5 mt-5">
+        <h3 class="mb-3">Or filter events by category</h3>
+        <div
+        class="form-check"
+        v-for="category in categories"
+        :key="category"
+        >
+        <input
+        class="form-check-input"
+        type="checkbox"
+        :id="category"
+        :ref="category"
+        :checked="categorieschecked.includes(category)"
+        v-on:change="
+        () => {
+          applyfilters(category);
+        }
+        "
+        />
+        <label class="form-check-label" :for="category">{{
+          category
+        }}</label>
+        </div>
+        </div>
+        </div>
+        </div>`,
+        components: {
+          MyCard,
+          MyPagination
+        }
+      };
+
+
+      const routes = [
+        { path: '/', component: Home,  meta: { title: 'Rangers Events' } },
+        {
+          path: '/events/:id',
+          name: 'events',
+          component: Events,
+          props: true,
+          meta: { title: 'Events' },
+        },
+      ];
+
+      const copyItems =  <%- JSON.stringify(data.items) %>;
+
+      const router = VueRouter.createRouter({
+        history: VueRouter.createWebHashHistory(),
+        routes,
+      });
+
+      router.beforeEach((to, from, next) => {
+        let temp = copyItems.find(e => e.sys.slug === to.params.id);
+        document.title = temp ? temp.title : to.meta.title;
+        next();
+      });
+
+      // Bring in the createApp method.
+        const { createApp } = Vue;
+
+      // Create the app and register the component.
+        const app = createApp({
+          components: {
+            MyHeader,
+            MyFooter,
+            MyPagination,
+            MyCard
+          },
+          data() {
+            return {
+              items: [],
+              copyItems: copyItems,
+              categoriesChecked: [],
+              rxDate: /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2})?(?:\.\d*)?Z?$/,
+              dateOptions: {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              },
+              pageIndex: 0,
+              totalCount: 0,
+              pageSize: 10,
+              pageCount: 0,
+              pageBtns: [],
+              searchFields: ['title', 'description'],
+              searchAlert: false,
+              searchTerm: '',
+              lastSearch: '',
+              fromDate: '',
+              toDate: '',
+              filterField: 'tags',
+              categories: [
+                'Bring a packed lunch',
+                'Bring binoculars if you have them',
+                'Car parking charge',
+                'Children must be accompanied by an adult',
+                'Easy walking grade',
+                'Full accessibility - level or ramped access. Accessible toilets available',
+                'Healthy walk / Event',
+                'Historial walk / Event',
+                'Ideal for families and accompanied children',
+                'Moderate walking grade',
+                'Partial accessibility - level or ramped access',
+                'Partnership event',
+                'Places limited - please book in advance',
+                'Please leave your dog at home',
+                'Please wear suitable boots and clothing',
+                'Refreshment shop, opportunity for refreshments',
+                'Strenuous walking grade',
+                'There is a charge for this event',
+                'Wildlife walk / Event',
+              ],
+            };
+          },
+          methods: {
+            clearAlert: function () {
+              this.searchAlert = false;
+            },
+            searchFilter: function () {
+              let fromDate = this.fromDate.length > 0 ? new Date(this.fromDate) : false;
+              let toDate = this.toDate.length > 0 ? new Date(this.toDate) : false;
+              this.searchedItems = this.filteredItems.filter((item) =>
+                this.searchFields.some((term) => {
+                  return (
+                    (!this.searchTerm ||
+                      item[term]
+                      .toLowerCase()
+                      .includes(this.searchTerm.toLowerCase())) &&
+                    (!fromDate || item.dateStartEnd.to > fromDate) &&
+                    (!toDate || item.dateStartEnd.to < toDate)
+                  );
+                }),
+              );
+              if (this.searchedItems.length > 0) {
+                this.searchedItems.sort(this.sortDate());
+              }
+              this.calculatePages();
+            },
+            filterByCategories: function () {
+              this.filteredItems = [];
+              if (this.categoriesChecked.length === 0) {
+                this.filteredItems = this.copyItems.slice();
+              } else {
+                this.filteredItems = this.copyItems.filter((elem) =>
+                  elem[this.filterField]
+                  .map((a) => a.name)
+                  .some((cat) => this.categoriesChecked.includes(cat)),
+                );
+              }
+              this.searchFilter();
+            },
+            resetSearch: function () {
+              this.searchTerm = '';
+              this.fromDate = '';
+              this.toDate = '';
+              this.searchedItems = this.filteredItems.slice();
+              this.calculatePages();
+            },
+            calculatePages: function () {
+              this.totalCount = this.searchedItems.length;
+              this.pageCount = Math.ceil(this.totalCount / this.pageSize);
+              this.pageIndex = 0;
+              this.pageBtns = Array.from({ length: this.pageCount }, (_, i) => i + 1);
+              this.createPages();
+              this.items = this.pages[0];
+            },
+            createPages: function () {
+              this.pages = [
+                ...Array(Math.ceil(this.searchedItems.length / this.pageSize)),
+              ].map((_) => this.searchedItems.splice(0, this.pageSize));
+            },
+            goToPage: function (pageNum) {
+              document.getElementById('contentTypesContainer').scrollIntoView();
+              this.items = this.pages[pageNum - 1];
+              this.pageIndex = pageNum - 1;
+              this.lastSearch = this.searchTerm;
+            },
+            applyFilters: function (cat) {
+              const index = this.categoriesChecked.indexOf(cat);
+              if (index > -1) {
+                this.categoriesChecked.splice(index, 1);
+              } else {
+                this.categoriesChecked.push(cat);
+              }
+              this.filterByCategories();
+              this.searchFilter();
+            },
+            formatDate: function (value) {
+              return value.toLocaleString('en-GB', this.dateOptions);
+            },
+            getTime: function (value) {
+              let time = value.toLocaleTimeString([], {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+              });
+              if (time === '0:00 pm') {
+                return '12 noon';
+              } else if (time.startsWith('0')) {
+                time = `12${time.slice(1)}`;
+              }
+              return time.replace(' ', '');
+            },
+            sortDate: function () {
+              return (a, b) => {
+                return a.dateStartEnd.from - b.dateStartEnd.from;
+              };
+            },
+            dateHelper: function (obj) {
+              return Object.fromEntries(
+                Object.entries(obj).map(([k, v]) => {
+                  // Date found.
+                    if (typeof v === 'string' && v.match(this.rxDate)) {
+                      return [k, new Date(v)];
+                    }
+                  // Found an object as the value.
+                    if (v && v.constructor === Object) {
+                      return [k, this.dateHelper(v)];
+                    }
+                  // Found an array of objects.
+                    if (Array.isArray(v) && v[0] && v[0].constructor === Object) {
+                      return [k, this.createDates(v)];
+                    }
+                  return [k, v];
+                }),
+              );
+            },
+            createDates: function (arr) {
+              return arr.map((e) => this.dateHelper(e));
+            },
+          },
+          mounted () {
+            this.copyItems = this.createDates(this.copyItems);
+            this.filteredItems = this.copyItems;
+            this.searchedItems = this.copyItems;
+            this.calculatePages();
+          }
+        });
+      app.use(router);
+      app.mount('#app');
+    </script>
+
+    <script src="https://www.cheshireeast.gov.uk/SiteElements/js/bs5/bootstrap.bundle.min.js?build=153195"></script>
+  </body>
+</html>
