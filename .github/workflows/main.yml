@@ -34,6 +34,6 @@ jobs:
         block-id: rangersnuxt
         client-id: ${{ secrets.Z_CLIENT_ID }}
         git-token: ${{ secrets.GIT_TOKEN }}
-        image-uri: antiloquax/rangersnuxt:${{ github.run_number +40 }} 
+        image-uri: antiloquax/rangersnuxt:b${{ github.run_number }} 
         project-id: blockstest
         shared-secret: ${{ secrets.Z_SHARED_SECRET }}            
