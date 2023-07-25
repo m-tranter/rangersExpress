@@ -52,3 +52,4 @@ app.all('/rangersevents*', function (_, res) {
 app.use((_, res) => {
   res.status(404).send('Page not found');
 });
+
