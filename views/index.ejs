@@ -596,8 +596,8 @@
           },
           mounted () {
             this.copyItems = this.createDates(this.copyItems);
-            this.filteredItems = this.copyItems;
-            this.searchedItems = this.copyItems;
+            this.filteredItems = this.copyItems.slice();
+            this.searchedItems = this.copyItems.slice();
             this.calculatePages();
           }
         });
