@@ -19,9 +19,9 @@ jobs:
       run: |
         docker login -u $USER -p $PASS
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag antiloquax/rangersnuxt:${{ github.run_number }}
+      run: docker build . --file Dockerfile --tag antiloquax/rangersnuxt:${{ github.run_number + 40}}
     - name: Docker push
-      run: docker push antiloquax/rangersnuxt:${{ github.run_number }}
+      run: docker push antiloquax/rangersnuxt:${{ github.run_number + 40}}
       
   push_to_contensis:
     runs-on: ubuntu-latest
@@ -34,6 +34,6 @@ jobs:
         block-id: rangersnuxt
         client-id: ${{ secrets.Z_CLIENT_ID }}
         git-token: ${{ secrets.GIT_TOKEN }}
-        image-uri: antiloquax/rangersnuxt:${{ github.run_number }} 
+        image-uri: antiloquax/rangersnuxt:${{ github.run_number +40 }} 
         project-id: blockstest
         shared-secret: ${{ secrets.Z_SHARED_SECRET }}            
