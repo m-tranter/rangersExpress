@@ -19,9 +19,9 @@ app.listen(port, () => {
 
 // Log all request to the server
 const myLogger = function (req, _, next) {
-  if (!req.url.startsWith('/?')) {
+  
     console.log(`Incoming: ${req.url}`);
-  }
+  
   next();
 };
 
